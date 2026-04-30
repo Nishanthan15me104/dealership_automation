@@ -1,0 +1,12 @@
+venv
+.venv
+.env
+__pycache__/
+*.pyc   
+
+
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
