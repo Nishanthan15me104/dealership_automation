@@ -5,9 +5,11 @@ git config core.autocrlf true
 Create .gitignore: Add venv/, __pycache__/, .env, and *.log.
 
 Create .gitattributes: Add the line * text=auto.
-Create .gitignore: Add venv/, __pycache__/, .env, and *.log.
 
-Create .gitattributes: Add the line * text=auto.
-Create .gitignore: Add venv/, __pycache__/, .env, and *.log.
+git add .
+git commit -m "Initial commit: Trading bot base with cross-platform config"
 
-Create .gitattributes: Add the line * text=auto.
+git branch -M main
+git remote add origin https://github.com/Nishanthan15me104/trading_bot.git
+git push -u origin main
+
