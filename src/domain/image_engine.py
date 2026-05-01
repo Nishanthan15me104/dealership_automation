@@ -7,96 +7,93 @@ from PIL import Image, ImageStat
 reader = easyocr.Reader(['en'], gpu=False)
 
 def find_best_logo_position(bg_w, bg_h, logo_w, logo_h, ocr_results):
-    """Finds a corner farthest from text, strictly in the top 70% of the image."""
-    margin = 50
-    # We only look at Top-Left and Top-Right to keep it away from the bottom template
-    candidates = [
-        (margin, margin),                         # Top-Left
-        (bg_w - logo_w - margin, margin)          # Top-Right
-    ]
-
+    margin = 40
+    candidates = [(margin, margin), (bg_w - logo_w - margin, margin), ((bg_w // 2) - (logo_w // 2), margin)]
+    buffer = 10
     text_boxes = []
     for result in ocr_results:
         bbox = result[0]
         xs = [pt[0] for pt in bbox]; ys = [pt[1] for pt in bbox]
-        text_boxes.append((min(xs), min(ys), max(xs), max(ys)))
+        if min(ys) < (bg_h * 0.4):
+            text_boxes.append((min(xs) - buffer, min(ys) - buffer, max(xs) + buffer, max(ys) + buffer))
 
-    # Simple logic: If Top-Left is crowded, go Top-Right
-    tl_box = (margin, margin, margin + logo_w, margin + logo_h)
-    for tb in text_boxes:
-        # Check if text is in Top-Left area
-        if not (tl_box[0] > tb[2] or tl_box[2] < tb[0] or tl_box[1] > tb[3] or tl_box[3] < tb[1]):
-            return candidates[1] # Return Top-Right
-            
-    return candidates[0] # Default Top-Left
+    for cx, cy in candidates:
+        logo_box = (cx, cy, cx + logo_w, cy + logo_h)
+        if all(not (logo_box[0] > tb[2] or logo_box[2] < tb[0] or logo_box[1] > tb[3] or logo_box[3] < tb[1]) for tb in text_boxes):
+            return (cx, cy)
+    return candidates[1]
 
-def get_optimal_logo_path(bg_crop, current_logo_path):
-    grayscale = bg_crop.convert("L")
-    stat = ImageStat.Stat(grayscale)
-    avg_brightness = stat.mean[0] 
-    directory = os.path.dirname(current_logo_path)
-    target = "logo-light.png" if avg_brightness < 127 else "logo-dark.png"
-    new_path = os.path.join(directory, target)
-    return new_path if os.path.exists(new_path) else current_logo_path
+def collapse_white_gap(image, sensitivity=250):
+    """
+    Finds the 'dirty white' gap between the car content and the panel and removes it.
+    """
+    img_gray = image.convert("L")
+    pixels = np.array(img_gray)
+    h, w = pixels.shape
+    
+    # Calculate row brightness. 255 is pure white. 
+    # AI noise usually sits around 250-254.
+    row_means = np.mean(pixels, axis=1)
+    is_white = row_means >= sensitivity 
+
+    # Find where the top content ends and the panel begins
+    content_rows = np.where(~is_white)[0]
+    if len(content_rows) < 2: return image
+
+    # Find the biggest jump in row indices (this is our gap)
+    gaps = np.diff(content_rows)
+    if len(gaps) == 0: return image
+    
+    max_gap_idx = np.argmax(gaps)
+    
+    if gaps[max_gap_idx] > 30: # If gap is bigger than 30px
+        top_end = content_rows[max_gap_idx] + 10
+        bottom_start = content_rows[max_gap_idx + 1] - 10
+        
+        top_part = image.crop((0, 0, w, top_end))
+        bottom_part = image.crop((0, bottom_start, w, h))
+        
+        final = Image.new("RGBA", (w, top_part.height + bottom_part.height))
+        final.paste(top_part, (0, 0))
+        final.paste(bottom_part, (0, top_part.height))
+        return final
+    return image
 
 def apply_dealership_branding(bg_image, panel_path, logo_path=None, output_size=(1080, 1080)):
-    # 1. SCALE BACKGROUND (Width only, preserve Aspect Ratio)
+    # 1. Scale
     target_w = output_size[0]
     w_ratio = target_w / float(bg_image.size[0])
     target_h = int(float(bg_image.size[1]) * w_ratio)
     bg = bg_image.convert("RGBA").resize((target_w, target_h), Image.Resampling.LANCZOS)
     
-    # 2. DETECT BOTTOM TEXT
-    np_img = np.array(bg.convert('RGB'))
-    ocr_results = reader.readtext(np_img)
-    bottom_limit = target_h * 0.88 # The last 12% of the image
-    has_bottom_text = any(max([pt[1] for pt in res[0]]) > bottom_limit for res in ocr_results)
+    # 2. OCR
+    ocr_results = reader.readtext(np.array(bg.convert('RGB')))
 
-    # 3. PREPARE PANEL
+    # 3. Panel
     panel_h = 0
+    panel = None
     if os.path.exists(panel_path):
         panel = Image.open(panel_path).convert("RGBA")
         p_ratio = target_w / float(panel.size[0])
         panel_h = int(float(panel.size[1]) * p_ratio)
         panel = panel.resize((target_w, panel_h), Image.Resampling.LANCZOS)
 
-    # 4. CREATE COMPOSITION (No Cropping)
-    if has_bottom_text:
-        # Create extra space at the bottom
-        final_h = target_h + panel_h
-        comp = Image.new("RGBA", (target_w, final_h), (255, 255, 255, 255))
-        comp.paste(bg, (0, 0), bg)
-        comp.paste(panel, (0, target_h), panel)
-    else:
-        # Place panel on top of the image
-        final_h = target_h
-        comp = bg.copy()
-        comp.paste(panel, (0, target_h - panel_h), panel)
+    # 4. Merge
+    combined = Image.new("RGBA", (target_w, target_h + panel_h), (255, 255, 255, 255))
+    combined.paste(bg, (0, 0), bg)
+    if panel: combined.paste(panel, (0, target_h), panel)
 
-    # 5. LOGO (Strictly on the BG part)
+    # 5. Fix Gap
+    final_img = collapse_white_gap(combined)
+
+    # 6. Logo (Corrected call and imports)
     if logo_path and os.path.exists(logo_path):
-        lw, lh = 180, 180
-        lx, ly = find_best_logo_position(target_w, target_h, lw, lh, ocr_results)
-        
-        # Color Check
-        bg_crop = bg.crop((lx, ly, lx + lw, ly + lh))
-        final_logo_path = get_optimal_logo_path(bg_crop, logo_path)
-        
-        logo = Image.open(final_logo_path).convert("RGBA")
+        lw, lh = 160, 160
+        # Call directly since it is in the same file
+        pos = find_best_logo_position(final_img.width, final_img.height, lw, lh, ocr_results)
+        lx, ly = pos
+        logo = Image.open(logo_path).convert("RGBA")
         logo.thumbnail((lw, lh), Image.Resampling.LANCZOS)
-        comp.paste(logo, (lx, ly), logo)
+        final_img.paste(logo, (lx, ly), logo)
 
-    # 6. FINAL FIT (Resize to 1080x1080 WITHOUT squashing)
-    # If image is too tall, we scale it down to fit 1080 height
-    if comp.size[1] > output_size[1]:
-        scale = output_size[1] / float(comp.size[1])
-        new_w = int(comp.size[0] * scale)
-        comp = comp.resize((new_w, output_size[1]), Image.Resampling.LANCZOS)
-    
-    # Place on final white square
-    final_square = Image.new("RGB", output_size, (255, 255, 255))
-    x_offset = (output_size[0] - comp.size[0]) // 2
-    y_offset = (output_size[1] - comp.size[1]) // 2
-    final_square.paste(comp.convert("RGB"), (x_offset, y_offset))
-    
-    return final_square
+    return final_img.convert("RGB")
