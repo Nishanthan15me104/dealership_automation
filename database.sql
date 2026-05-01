@@ -22,9 +22,9 @@ CREATE TABLE dealerships (
 INSERT INTO brands (id, name) VALUES (1, 'Tata');
 INSERT INTO brands (id, name) VALUES (2, 'Volkswagen');
 
--- Insert Dealership Data (Matching your VS Code screenshot paths)
--- Brand 1 is Tata, Brand 2 is Volkswagen
+-- Insert Dealership Data 
+-- Panels remain in their specific dealer folders, Logos move to Brand folders
 INSERT INTO dealerships (brand_id, name, panel_image_path, logo_image_path) VALUES 
-(1, 'Bellad Tata', 'assets/Dealership-panels/Tata-dealers/Bellad-tata/template.png', 'assets/Dealership-panels/Tata-dealers/Bellad-tata/logo-dark.png'),
-(2, 'VW Autobhan', 'assets/Dealership-panels/VW-dealers/VW-Autobhan/template.png', 'assets/Dealership-panels/VW-dealers/VW-Autobhan/logo-dark.png'),
-(2, 'VW Hubli', 'assets/Dealership-panels/VW-dealers/VW-Hubli/template.png', 'assets/Dealership-panels/VW-dealers/VW-Hubli/logo-dark.png');
+(1, 'Bellad Tata', 'assets/Dealership-panels/Tata-dealers/Bellad-tata/template.png', 'assets/Logos/Tata/logo-dark.png'),
+(2, 'VW Autobhan', 'assets/Dealership-panels/VW-dealers/VW-Autobhan/template.png', 'assets/Logos/Volkswagen/logo-dark.png'),
+(2, 'VW Hubli', 'assets/Dealership-panels/VW-dealers/VW-Hubli/template.png', 'assets/Logos/Volkswagen/logo-dark.png');
