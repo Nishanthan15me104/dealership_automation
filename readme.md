@@ -41,3 +41,8 @@ OCR Optimization: Refactored the image_engine.py to pass existing OCR results be
 Challenge: Manufacturer templates often have vertical design elements or logos in the corners that standard "Corner-only" placement logic would collide with.
 
 Improvement: Expanded the find_best_logo_position engine to include a Top-Center candidate with tighter collision buffers. This allows the branding to find "breathing room" in complex headers without overlapping existing dealership text.
+
+4. The "Recursive Branding" Challenge
+Challenge: When processing manufacturer-provided creatives, the source images often already contain a brand logo or "Service" header at the top. The engine's original logic was "blind" to these existing elements, causing it to overlay a second dealership logo directly on top of the original. This resulted in cluttered, unprofessional layouts that violated brand guidelines.
+
+Improvement: Developed an "OCR-Based Brand Guard." The engine now utilizes a specialized function, is_already_branded, which performs a targeted scan of the top 30% of the canvas before any new assets are applied. It cross-references detected text against a dictionary of known brand keywords (e.g., 'Volkswagen', 'Tata', 'Mahindra'). If a match is found in the header area, the engine flags the image as "already branded" and skips the logo placement step entirely, preserving the original design.
