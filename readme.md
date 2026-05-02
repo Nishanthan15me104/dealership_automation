@@ -46,3 +46,16 @@ Improvement: Expanded the find_best_logo_position engine to include a Top-Center
 Challenge: When processing manufacturer-provided creatives, the source images often already contain a brand logo or "Service" header at the top. The engine's original logic was "blind" to these existing elements, causing it to overlay a second dealership logo directly on top of the original. This resulted in cluttered, unprofessional layouts that violated brand guidelines.
 
 Improvement: Developed an "OCR-Based Brand Guard." The engine now utilizes a specialized function, is_already_branded, which performs a targeted scan of the top 30% of the canvas before any new assets are applied. It cross-references detected text against a dictionary of known brand keywords (e.g., 'Volkswagen', 'Tata', 'Mahindra'). If a match is found in the header area, the engine flags the image as "already branded" and skips the logo placement step entirely, preserving the original design.
+
+5. API-First Orchestration
+Challenge: Traditional monolithic scripts run heavy OCR and image processing within the UI thread, leading to high latency and memory saturation on standard development hardware.
+
+Improvement: Refactored the tool into a Client-Server architecture. By exposing the branding logic through a FastAPI layer, we decoupled the "Intelligent Automation" from the user interface. This allows the system to be integrated into any existing dealership CRM while maintaining a lightweight, responsive Streamlit dashboard for manual oversight.
+
+Intelligent Automation: 
+
+AI Text-Overlap Avoidance: We use EasyOCR to detect text in the original creative. Our engine identifies where text exists and uses the "Accordion Collapse" logic to ensure the dealership panel never covers original text.
+
+Smart Scaling (No White Space): Our collapse_white_gap algorithm uses a pixel-scan to remove "dirty white" AI noise, ensuring a seamless vertical stack without distortion.
+
+Intelligent Logo Placement: Our find_best_logo_position uses the OCR bounding boxes to "hunt" for an empty corner, ensuring the logo doesn't overlap with the car or the creative's text.
