@@ -1,5 +1,38 @@
 # Dealership Creative Automation Tool
 
+## 📑 Table of Contents
+
+- [📌 Project Overview](#-project-overview)
+- [📁 Project Directory Structure](#-project-directory-structure)
+- [🏗 System Architecture](#-system-architecture)
+- [⚙️ Core Technologies Used](#️-core-technologies-used)
+- [🧠 Intelligent Automation Features](#-intelligent-automation-features)
+  - [🔹 1. OCR-Based Text Detection](#-1-ocr-based-text-detection)
+  - [🔹 2. Intelligent Logo Placement](#-2-intelligent-logo-placement)
+  - [🔹 3. Accordion Collapse Algorithm (AI Void Removal)](#-3-accordion-collapse-algorithm-ai-void-removal)
+  - [🔹 4. OCR-Based Brand Guard](#-4-ocr-based-brand-guard)
+  - [🔹 5. Bulk Processing Engine](#-5-bulk-processing-engine)
+  - [🔹 6. Async API Offloading](#-6-async-api-offloading)
+- [🗄 Database Design](#-database-design)
+- [🧩 Database Functions](#-database-functions)
+- [🖼 Creative Generation Flow](#-creative-generation-flow)
+- [✅ Functional Requirements Coverage](#-functional-requirements-coverage)
+- [📐 Supported Output Formats](#-supported-output-formats)
+- [🚀 Setup Instructions](#-setup-instructions)
+- [🌐 API Endpoints](#-api-endpoints)
+- [📦 Example API Workflow](#-example-api-workflow)
+- [📥 Output](#-output)
+- [🛡 Security Features](#-security-features)
+- [📊 Monitoring Support](#-monitoring-support)
+- [⚡ Performance Optimizations](#-performance-optimizations)
+- [🧪 Challenges Faced & Improvements](#-challenges-faced--improvements)
+- [🔮 Future Improvements](#-future-improvements)
+- [✅ Features Summary](#-features-summary)
+- [👨‍💻 Author](#-author)
+
+---
+# Dealership Creative Automation Tool
+
 ## 📌 Project Overview
 
 The **Dealership Creative Automation Tool** is an AI-assisted bulk creative generation system designed for automotive dealership marketing teams.
