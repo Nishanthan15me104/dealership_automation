@@ -64,8 +64,17 @@ if st.button("🚀 Generate Bulk Creatives", type="primary"):
             }
 
             try:
+                # --- ADDED FOR PRODUCTION SECURITY ---
+                # This key must match the 'api_key' in your main_api.py settings
+                headers = {"X-API-Key": "dev-secret-key-1234"}
+                
                 # Ensure main_api.py is running on port 8000
-                response = requests.post("http://localhost:8000/generate-bulk/", files=files, data=data)
+                response = requests.post(
+                    "http://localhost:8000/generate-bulk/", 
+                    files=files, 
+                    data=data,
+                    headers=headers  # <-- Pass the security headers here
+                )
                 
                 if response.status_code == 200:
                     st.success(f"Generated {len(selected_dealers)} creatives via API!")
@@ -75,6 +84,8 @@ if st.button("🚀 Generate Bulk Creatives", type="primary"):
                         file_name="dealership_creatives.zip",
                         mime="application/zip"
                     )
+                elif response.status_code == 403:
+                    st.error("Authentication Failed: Invalid API Key.")
                 else:
                     st.error(f"API Error: {response.text}")
             except Exception as e:

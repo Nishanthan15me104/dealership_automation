@@ -5,8 +5,12 @@ easyocr==1.7.1
 pandas==2.2.1
 numpy==1.26.4
 
-# --- New API Dependencies ---
+# --- New API Core Dependencies ---
 fastapi==0.110.0
 uvicorn==0.29.0
 python-multipart==0.0.9
 requests==2.31.0
+
+# --- Production & Configuration ---
+pydantic-settings==2.2.1
+prometheus-fastapi-instrumentator==7.0.0
