@@ -461,7 +461,7 @@ Export Final Creative
 ## 1️⃣ Clone / Extract Repository
 
 ```powershell
-git clone <your-repository-url>
+git clone https://github.com/Nishanthan15me104/dealership_automation
 cd dealership_automation
 ```
 
@@ -494,12 +494,7 @@ pip install -r requirements.txt
 ## 4️⃣ Initialize Database
 
 ```powershell
-python
-```
-
-```python
-from src.infrastructure.db_handler import init_db
-init_db()
+python -c "from src.infrastructure.db_handler import init_db; init_db()"
 ```
 
 This creates:
@@ -512,24 +507,21 @@ with all brand + dealership mappings.
 
 ---
 
-## 5️⃣ Run Streamlit Frontend
 
-```powershell
-streamlit run app.py
-```
-
-OR
-
-```powershell
-streamlit run main_st.py
-```
-
----
 
 ## 6️⃣ Run FastAPI Backend
 
 ```powershell
-uvicorn main_api:app --reload
+uvicorn main_api:app --reload --port 8000
+```
+
+---
+
+## 5️⃣ Run Streamlit Frontend
+
+
+```powershell
+streamlit run main_st.py
 ```
 
 ---
