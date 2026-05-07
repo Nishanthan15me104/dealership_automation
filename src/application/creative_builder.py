@@ -5,8 +5,21 @@ from src.domain.image_engine import apply_dealership_branding
 
 def generate_bulk_zip(uploaded_file, selected_dealers, dimensions, use_logo):
     """
-    Loops through selected dealerships, generates images, and packages them in a ZIP.
-    Returns a BytesIO object of the ZIP file.
+    Generates branded marketing creatives for multiple dealerships and packages them in a ZIP.
+    
+    This function takes a base background image, iterates through a list of 
+    dealerships, applies specific branding (panels/logos) via the image engine, 
+    and compresses the results into a single ZIP file for download.
+
+    Args:
+        uploaded_file (File): The base background image file uploaded by the user.
+        selected_dealers (list[tuple]): List of dealer tuples from the database 
+            (id, name, panel_path, logo_path).
+        dimensions (tuple): The target output size (width, height) for the images.
+        use_logo (bool): Flag to determine whether to overlay the dealer logo.
+
+    Returns:
+        bytes: The raw binary content of the generated ZIP file.
     """
     bg_image = Image.open(uploaded_file)
     

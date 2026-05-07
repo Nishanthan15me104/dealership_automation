@@ -7,6 +7,21 @@ from PIL import Image, ImageStat
 reader = easyocr.Reader(['en'], gpu=False)
 
 def find_best_logo_position(bg_w, bg_h, logo_w, logo_h, ocr_results):
+    """
+    Determines an optimal (x, y) coordinate for logo placement by checking candidate 
+    locations against detected text regions to prevent overlap.
+
+    Args:
+        bg_w (int): Width of the background image.
+        bg_h (int): Height of the background image.
+        logo_w (int): Width of the logo to be placed.
+        logo_h (int): Height of the logo to be placed.
+        ocr_results (list): Output from easyocr.Reader.readtext() containing 
+                           bounding boxes and detected text.
+
+    Returns:
+        tuple: (x, y) coordinates for the top-left corner of the logo.
+    """
     margin = 40
     candidates = [(margin, margin), (bg_w - logo_w - margin, margin), ((bg_w // 2) - (logo_w // 2), margin)]
     buffer = 10
@@ -25,8 +40,17 @@ def find_best_logo_position(bg_w, bg_h, logo_w, logo_h, ocr_results):
 
 def collapse_white_gap(image, sensitivity=250):
     """
-    Finds the 'dirty white' gap between the car content and the panel and removes it.
-    """
+        Scans an image vertically to detect and remove large horizontal bands of 
+        near-white pixels (gaps) often found in AI-generated backgrounds.
+
+        Args:
+            image (PIL.Image): The combined image containing the background and panel.
+            sensitivity (int): Brightness threshold (0-255). Rows with an average 
+                            brightness above this are considered 'white'.
+
+        Returns:
+            PIL.Image: A new image with the detected gap 'collapsed' (removed).
+        """
     img_gray = image.convert("L")
     pixels = np.array(img_gray)
     h, w = pixels.shape
@@ -61,8 +85,16 @@ def collapse_white_gap(image, sensitivity=250):
 
 def is_already_branded(ocr_results, bg_h):
     """
-    Scans the top 30% of the image for existing brand or dealership text.
-    If found, we assume the logo is already present.
+    Analyzes OCR detections in the upper region of an image to identify 
+    existing manufacturer or dealership branding.
+
+    Args:
+        ocr_results (list): The list of detections from EasyOCR.
+        bg_h (int): Total height of the background image.
+
+    Returns:
+        bool: True if a known brand keyword is detected in the top 30% of the image, 
+              False otherwise.
     """
     # Add any other brands your dealerships work with
     brand_keywords = [
@@ -84,6 +116,19 @@ def is_already_branded(ocr_results, bg_h):
     return False
 
 def apply_dealership_branding(bg_image, panel_path, logo_path=None, output_size=(1080, 1080)):
+    """
+    Coordinates the full image processing pipeline: scaling, OCR analysis, 
+    footer panel attachment, white-gap removal, and intelligent logo placement.
+
+    Args:
+        bg_image (PIL.Image): The raw background car image.
+        panel_path (str): File path to the dealership footer panel image.
+        logo_path (str, optional): File path to the dealership logo.
+        output_size (tuple): The desired (width, height) for the final output.
+
+    Returns:
+        PIL.Image: The fully processed and branded image in RGB format.
+    """
     # 1. Scale
     target_w = output_size[0]
     w_ratio = target_w / float(bg_image.size[0])
